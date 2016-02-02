@@ -1,0 +1,62 @@
+%% introduction.tex
+%%
+
+%% ==============================
+\chapter{Introduction}
+\label{ch:introduction}
+%% ==============================
+
+Ad hoc wireless radio networks became more prevalent recently and will continue to grow, as mobile devices, vehicles, drones and sensors are on the rise both in the market and in research. However, when these devices get deployed, they lack any global knowledge of their environment and might not have any reliable infrastructure to coordinate their actual tasks efficiently.
+
+To enable efficient communication between these nodes, and with that to enable them to make use of well-studied algorithms for distributed settings, a network organization protocol must be established first. Such a protocol can be established in a fully distributed environment on a single radio frequency band by using a Time Division Multiple Access (TDMA) scheme to create a Medium Access Control (MAC) layer on that band. By assigning each node timeslots in a way, such that interference between simultaneous senders is low, such a protocol would avoid message-collisions and enable efficient communication.
+
+Creating a TDMA scheme in a network without any initial structure is therefore of great practical importance and a lot of research has been done on this subject in the recent past. The theoretical problem of coloring neighboring nodes in a graph with different colors is a closely related problem which has therefore seen a lot of attention recently. While theoretically, a simple node coloring can be translated into a TDMA scheme by assigning each node a timeslot according to its color, this does not guarantee a collision-free structure. It is generally known that a distance-2 coloring is sufficient for that (e.g. \cite{ramanathan1993scheduling}), meaning that for a node $v$, and each pair of distinct neighbours $u$ and $w$, their colors must not match respectively.
+
+However, it has been shown that in practice, a simple node coloring is already too restrictive when translated to a TDMA scheme \cite{moscibroda2006protocol}. This means that for most purposes, efficiently calculating a valid node coloring in an unstructured network is the key to enabling any further complexity.
+
+The chosen model of the graph structure and communication play huge part in the distributed complexity of an algorithm calculating such a coloring. While early works have made assumptions that enabled algorithms to perform in good asymptotic complexities, the focus shifts more and more towards models which are closer to reality and therefore give better predictions and boundaries for practical solutions.
+
+One model which has seen a lot of attention recently is the Signal to Interference and Noise Ratio (SINR) model. While this model only accounts for the environment by a static noise constant, it takes into account the interference caused by all sending nodes in a network at a given time and by comparing the signal strength of the senders signal to the sum of interfering signals, the model determines whether a message-delivery was successful or not.
+
+Theoretically, every node in this model may have a different transmission power, yet most works so far have artificially restricted transmission powers to a uniform value, because uniform transmission ranges correspond to unit disk graphs, which are well understood and behave nicely. As this defeats the purpose of having a model closer to reality, recent works have taken steps towards removing these restraints. For example, to allow arbitrary transmission power in the SINR model, only few changes in known local broadcasting algorithms are necessary \cite{DBLP:journals/corr/FuchsW14}. This results in a disk graph model, which suggests that bidirectional communication is not always possible.
+
+We therefore analyze what is necessary to compute a coloring in a directed graph using the CONGEST model, abstracting away the local broadcast which can be done in $O(\Gamma^2 \Delta \log n)$ timeslots \cite{DBLP:journals/corr/FuchsW14}. We discuss the graph and communication models in more detail in Sections \ref{section:comm} and \ref{section:graph}.
+
+\section{Related Work}
+
+Graph coloring is one of the oldest theoretical problems of computer science (\cite{birkhoff1912determinant}, \cite{whitney1931coloring}), however the distributed aspect has only recently seen a lot of attention. Early on, Cole and Vishkin proposed a deterministic algorithm which would 3-color a cycle ($\Delta+1$) in a run time of $O(\log^* n)$ \cite{cole1986deterministic}. Many authors worked to improve and further analyze this algorithm and it has finally been shown by Goldberg and Plotkin to work in any bounded degree graphs with the same run time \cite{goldberg1987parallel}. 
+
+This run time is asymptotically tight as a lower bound of $\Omega(\log^* n)$ for the distributed graph coloring was shown by Linial \cite{linial1992locality}. This bound is even true for randomized algorithms, such as the ones considered in this thesis.
+
+Another very popular $\Delta+1$ algorithm which was first introduced by Schneider and Wattenhofer is based on the maximal independent set (MIS) problem and creates a coloring in $O(\log^* n)$ for growth bounded graphs by using an MIS algorithm together with a color reduction technique \cite{schneider2008log}. 
+
+Motivated by the challenges of unstructured radio networks, Moscibroda and Wattenhofer adapted that algorithm to accomodate for a lack of collision detection and asynchronous wake up times and created an algorithm capable of operating in a more realistic model. It produced an $O(\Delta)$ coloring in $O(\log n)$ time, while minimizing the number of colors locally. Derbel and Talbi improved this algorithm further by adapting it to the Signal to Interference and Noise Ratio (SINR) physical model, which is another step into the direction of realism \cite{dt-dncsi-10}. Their algorithm also produces an $O(\Delta)$ coloring while needing $O(\Delta \log n)$ time slots, which is impressive considering that a simple round of conventional message passing in that model needs the same amount of time \cite{goussevskaia2008local}. 
+
+Research has also been done on defective coloring, which means algorithms produce colorings which are invalid up to a certain degree, as it was shown that a normal coloring may already be too restrictive for an effective TDMA scheme \cite{moscibroda2006protocol}. These defective coloring algorithms and current randomized algorithms have recently been gathered in a monograph by Barenboim and Elkin \cite{be-dcg-13}. 
+
+Graph colorings in networks with arbitrary transmission power have so far only been looked at in \cite{DBLP:journals/corr/FuchsW14} with a suggested algorithm which produces $O(\Gamma^2 \Delta)$-colorings in $O((\Delta+l)\Gamma^6 \Delta \log n)$ timeslots in the SINR model, which corresponds to $O(\Delta)$ colors with $O(\Delta + l \log n)$ rounds in the CONGEST model. In this work we improve on the run time and the number of colors by utilizing randomized algorithms.
+
+\section{Contributions}
+
+In this thesis we take a popular class of simple randomized algorithms and look into what changes when the underlying graph model becomes less restricted. For this purpose, we first analyze this graph model and the challenges it represents, which are unidirectional communication links.
+
+To bypass this problem, we take a simple algorithm to compute a $2\Delta$ coloring and add an initialization to it, so that a node knows if it is dominated, which means that the node receives from a neighbor which cannot receive the answer. The node will then wait for its dominators to terminate before it may terminate itself.
+
+This algorithm has a run time of $O(\Delta + l \log n)$ and we improve the colors of the coloring it produces further to $\Delta+1$ using a technique to lower collision chances by decreasing the amount of nodes which are active in every round.
+
+This introduces an initialization phase to the algorithm, though, which would slow down the algorithm in practice even after the initialization is done if we want asynchronous wake up times to be supported, so further on we remove the initialization process. The algorithm, as a result, becomes more efficient, yet we have to initially increase the number of available colors to $3\Delta$ as nodes cannot determine whether they have terminated or not by themselves anymore.
+
+Finally we use the same reduction technique described earlier to decrease the necessary colors to $2\Delta +1$. These algorithms, as a result, have a run time of $O(l \log n)$.
+
+We also show that for randomized algorithms in this graph model, there exists a lower bound of $\Omega(\min\{l, \log n\})$, with $l$ being the length of the longest strictly directed path in the graph.
+
+We run simulations to look at the size $l$ has in real communication graphs and interpret that $l$ depends on the variation in transmission ranges of nodes in the graph. As the variation in ranges increases, the chance for unidirectional links and chains grows. However when ranges get too big, the effect is reduced, as single nodes reach a large portion of the graph.
+
+\section{Outline}
+
+In the next chapter we will give an overview over the preliminaries of this thesis. First, we declare the definitions and basic structures used throughout it, then we establish the communication model which we use throughout this thesis, and finally we will derive the graph model on which we base our algorithms.
+
+The following chapter contains the main part of this thesis, starting with adapting a simple randomized algorithm to our model, proving that it produces a valid coloring and analyzing its runtime, and then we continue to improve on that algorithm by removing an initialization phase and reducing the amount of colors that are needed.
+
+We then construct a lower bound on these types of algorithms and discuss how these algorithms can be applied to graphs containing strictly directed cycles. In the following chapter we gather empirical data from which we analyze the structure of the communication graphs that we describe in the preliminaries. Afterwards we conclude the thesis and give an outlook on current research.
+

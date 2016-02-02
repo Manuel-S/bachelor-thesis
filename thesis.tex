@@ -1,0 +1,210 @@
+\documentclass{thesisclass}
+% Based on thesisclass.cls of Timo Rohrberg, 2009
+% ----------------------------------------------------------------
+% Thesis - Main document
+% ----------------------------------------------------------------
+
+
+%% -------------------------------
+%% |  Information for PDF file   |
+%% -------------------------------
+\hypersetup{
+ pdfauthor={Manuel Schweigert},
+ pdftitle={Distrubuted Node Coloring Algorithms for Directed Graphs},
+ pdfsubject={Bachelor Thesis},
+ pdfkeywords={Distrubuted, Node, Coloring, Algorithms, Directed Graphs, Manuel Schweigert, Bachelor, Thesis}
+}
+
+
+%% ---------------------------------
+%% | Information about the thesis  |
+%% ---------------------------------
+
+\newcommand{\myname}{Manuel Schweigert}
+\newcommand{\mytitle}{Distributed Node Coloring Algorithms for Directed Graphs}
+\newcommand{\myinstitute}{Institute of Theoretical Computer Science}
+
+\newcommand{\reviewerone}{Prof. Dr. Dorothea Wagner}
+\newcommand{\reviewertwo}{Prof. Dr. Peter Sanders}
+\newcommand{\advisor}{Dipl. Inform. Fabian Fuchs}
+\newcommand{\advisortwo}{Dipl. Inform. Roman Putkin}
+
+\newcommand{\timestart}{13th of January 2014}
+\newcommand{\timeend}{12th of May 2014}
+
+
+%% ---------------------------------
+%% | Commands                      |
+%% ---------------------------------
+
+\newtheorem{definition}{Definition} \numberwithin{definition}{chapter}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{conjecture}[definition]{Conjecture}
+
+\newcommand{\defines}{\mathrel{\mathop{\raisebox{1pt}{\scriptsize$:=$}}}}
+
+\newenvironment{myindent}[1]%
+{\begin{list}{}%
+         {\setlength{\leftmargin}{#1}}%
+         \item[]%
+}
+{\end{list}}
+
+
+%% --------------------------------
+%% | Settings for word separation |
+%% --------------------------------
+% Help for separation:
+% In german package the following hints are additionally available:
+% "- = Additional separation
+% "| = Suppress ligation and possible separation (e.g. Schaf"|fell)
+% "~ = Hyphenation without separation (e.g. bergauf und "~ab)
+% "= = Hyphenation with separation before and after
+% "" = Separation without a hyphenation (e.g. und/""oder)
+
+% Describe separation hints here:
+\hyphenation{
+% Pro-to-koll-in-stan-zen
+% Ma-na-ge-ment  Netz-werk-ele-men-ten
+% Netz-werk Netz-werk-re-ser-vie-rung
+% Netz-werk-adap-ter Fein-ju-stier-ung
+% Da-ten-strom-spe-zi-fi-ka-tion Pa-ket-rumpf
+% Kon-troll-in-stanz
+}
+
+
+%% ------------------------
+%% |    Including files   |
+%% ------------------------
+% Only files listed here will be included!
+% Userful command for partially translating the document (for bug-fixing e.g.)
+\includeonly{
+titlepage,
+introduction,
+preliminaries,
+content,
+conclusion,
+appendix
+}
+
+\usepackage{indentfirst}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\DeclareCaptionSubType * {figure}
+\renewcommand\thesubfigure{\thefigure\alph{subfigure}}
+\setlength{\parindent}{15pt}
+
+\DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator{\range}{range}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Here, main documents begins %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+% Remove the following line for German text
+\selectlanguage{english}
+
+\frontmatter
+\pagenumbering{roman}
+\include{titlepage}
+\blankpage
+
+%% -------------------------------
+%% |   Statement of Authorship   |
+%% -------------------------------
+
+\thispagestyle{plain}
+
+\vspace*{\fill}
+
+\centerline{\bf Statement of Authorship}
+
+\vspace{0.25cm}
+
+I hereby declare that this document has been composed by myself and describes my own work, unless otherwise acknowledged in the text.
+
+\vspace{2.5cm}
+
+\hspace{0.25cm} Karlsruhe, \today
+
+\vspace{2cm}
+
+\blankpage
+
+%% -------------------
+%% |   Abstract      |
+%% -------------------
+
+\thispagestyle{plain}
+
+\begin{addmargin}{0.5cm}
+
+\centerline{\bf Abstract}
+
+Distributed node coloring algorithms are the heart of creating efficient, collision free communication schemes in ad hoc wireless communication networks such as sensor networks. As such, there is great practical importance in understanding these algorithms and in creating models which are as close to reality as possible, such as the Signal to Interference and Noise Ratio (SINR) communication model.
+
+In this thesis, we analyze the implications of different transmission ranges of nodes on coloring algorithms, resulting in an underlying directed graph problem. We show that a chain of unidirectional communication links will have an effect on the run times of algorithms, but otherwise will not prohibit a valid coloring to be computed.
+
+We present randomized algorithms roughly based on Luby's algorithm \cite{luby1986simple}, which produce $\Delta+1$-colorings in $O(\Delta + l \log n)$ and $2\Delta+1$-colorings in $O(l \log n)$ broadcast rounds. We also present observations from our simulations that $l$ depends on the deviation in transmission ranges.
+
+\vskip 2cm
+
+\centerline{\normalfont \bfseries Deutsche Zusammenfassung}
+
+\noindent Algorithmen zur Knotenfärbung sind das Herzstück effizienter, kollisionsfreier Kommunikationsschemata in drahtlosen Ad-hoc-Netzwerken, wie sie beispielsweise in Sensornetzwerken vorkommen. Daher gibt es ein großes, praktisches Interesse daran, diese Algorithmen zu verstehen und Modelle zu entwerfen, die realitätsnahe Ergebnisse liefern können, wie zum Beispiel das Signal to Interference and Noise Ratio (SINR) Modell.
+
+\noindent In dieser Arbeit widmen wir uns dem Entwurf und der Analyse von Algorithmen, welche auf der Annahme basieren, dass Knoten im SINR Modell (aufgrund verschiedener Sendeleistungen) verschieden große Übertragungsreichweiten haben können. Dies impliziert ein Graphenmodell, welches unidirektionale Kanten erlaubt, da Knoten nicht unbedingt genug Reichweite zum Antworten haben.
+
+\noindent Wir stellen unter anderem randomisierte Algorithmen vor, die in einer Laufzeit von $O(\Delta + l \log n)$ bzw. $O(l \log n)$ eine $\Delta+1$ bzw. eine $2\Delta+1$ Färbung mit hoher Wahrscheinlichkeit erstellen. Hierbei ist $\Delta$ der maximale Knoten-Eingangsgrad, $n$ die Knotenanzahl und $l$ die Länge der längsten unidirektionalen Kette im Graphen. Wir stellen schließlich eine experimentelle Studie zur Länge von $l$ an und kommen zu dem Ergebnis, dass $l$ von der Standardabweichung der Übertragungsreichweiten der Knoten im Graphen abhängt.
+
+\end{addmargin}
+
+\blankpage
+
+%% -------------------
+%% |   Directories   |
+%% -------------------
+
+\tableofcontents
+\blankpage
+
+%% -----------------
+%% |   Main part   |
+%% -----------------
+
+\mainmatter
+\pagenumbering{arabic}
+\include{introduction}
+\include{preliminaries}
+\include{content}
+\include{conclusion}
+
+
+
+%% --------------------
+%% |   Bibliography   |
+%% --------------------
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\bibname}
+
+\iflanguage{english}
+{\bibliographystyle{alpha}}
+{\bibliographystyle{babalpha-fl}} % german style
+\bibliography{references,abbrv}
+
+
+%% ----------------
+%% |   Appendix   |
+%% ----------------
+
+\cleardoublepage
+\input{appendix}
+
+
+\end{document}

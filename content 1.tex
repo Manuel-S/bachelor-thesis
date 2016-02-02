@@ -1,0 +1,211 @@
+%% content.tex
+%%
+\chapter{Randomized Algorithms}
+\label{ch:randomizedAlgorithms}
+
+\section{Preamble}
+The following Algorithms work using the $\mathcal{CONGEST}$ model. This means that we design the algorithm to function on our class of graphs described earlier when we analyzed what forms of graphs appear in the SINR model. We assume that in one broadcast round there is one message sent to all neighbors of a node and one received by each incoming edge for a node. The time to simulate a broadcast model in the $\mathcal{SINR}$ model is known to be $O(\Delta \log{n})$, with $\Delta$ being the maximum in-degree of all nodes and $n$ the number of nodes. This time is then re-substituted for a broadcast.
+
+\section{Coming from the $\mathcal{LOCAL}$ model}
+In the $\mathcal{LOCAL}$ model, as well as in the algorithms suggested in "Distributed Node Coloring in the SINR Model" by Bilel and Talbi, we have uniform disk graphs. This assumption is a huge one to make, however, as the $\mathcal{SINR}$ model rather suggests a non-uniform disk graph. The $\mathcal{DECAY}$ model goes even further and makes no assumptions about the structure of the graph anymore besides that its nodes have locations and cannot be arbitrarily moved in a graphical representation.
+
+In this section, we will take the algorithm 18, "Procedure Rand-2Delta(G)" from Barenboim and Elkin (P101), and make the minimal changes required to make it work in our model.
+
+First off, here is a little helper procedure.
+
+
+\begin{algorithm}[bt]
+\DontPrintSemicolon 
+\caption{\textsc{Procedure Get-K-Neighborhood(G)}}\label{alg:k-nghbr}
+\SetKwFor{ForAll}{for}{do}
+
+$N^0_v = (v, \emptyset)$\;
+
+\ForAll{$i = 1 .. K$}
+{
+
+\SetKwFor{ForEach}{for each}{do}
+Broadcast $N^{i-1}_v$\;
+
+$T = \emptyset$ \;
+
+\ForEach{$N^{i-1}_u$ recieved}
+{
+$T = T \cup \{N^{i-1}_u\}$\;
+
+$N^{i}_v = (v, T)$\;
+
+
+}
+
+
+}
+
+return $N^k_v$
+
+\end{algorithm}
+
+This procedure makes the $K$-neighborhood of a node known to that node. Its runtime depends on how many edges worth of neighborhood one needs to discover, which is represented by the parameter $K$. The procedure takes $O(\Delta^{K-1})$ Broadcasts to complete, as for a 1-Neighborhood, a simple communication round suffices, a 2-Neighborhood requires every node to send and receive the data about its $\Delta$ neighbors, for a 3-Neighborhood, a node has to send $\Delta$-messages for each of its $\Delta$ neighbors, resulting in $\Delta^2$ messages, and so on.
+
+Let us now go ahead and modify the algorithm.
+\begin{algorithm}[ht]
+\DontPrintSemicolon 
+\caption{\textsc{Procedure Rand-2-Delta}}\label{alg:r2d}
+
+Run Procedure Get-$2$-Neighborhood \;
+Let $D_v$ be the set of nodes that dominate $v$, calculated from the 2-neighborhood of $v$\;
+
+Let $T_v = \emptyset$, the set of temporary colors of the Neighbors of $v$\;
+Let $F_v = \emptyset$, the set of final colors of the Neighbors of $v$\;
+
+\SetKwFor{ForEach}{for each}{do}
+
+\ForEach{round}{
+	$T_v = \emptyset$\;
+	$c_v :=$ draw a color from $[2\Delta]$ randomly\;
+	send the color $c_v$ to all neighbors\;
+	\ForEach{received color $c_u$ from a neighbor $u$}{
+		$T_v = T_v \cup \{c_u\}$\;
+	}
+	\If{$c_v \notin T_v \cup F_v$ and $\forall u \in D_v \exists c_u \in F_v$}{
+		send the message "final $c_v$" to all neighbors\;
+		select $c_v$ as the final color of $v$ and terminate\;
+	}
+	\Else{
+		\ForEach{received message "final $c_u$" from a neighbor u}{
+			$F_v = F_v \cup \{c_u\}$\;
+		}
+		discard $c_v$ and continue to the next round
+	}
+}
+
+\end{algorithm}
+
+\begin{theorem}
+\label{theorem:r2dproof}
+  Procedure Rand-2Delta produces a legal $2\Delta$-vertex-coloring when all nodes terminate
+\end{theorem}
+\begin{proof}
+  Let us choose a pair of neighbors arbitrarily, $u,v \in V$. Let $i,j$ be the rounds in which these nodes terminate respectively.
+	\\ \textbf{case:} $u$ dominates $v$ \\
+	Since we computed the 2-neighborhood around each node, $v$ knows that it is dominated by $u$ and therefore $u\in D_v$.
+	Therefore it holds that $i<j$ simply because $v$ cannot terminate before it received the final color of $u$.
+	\\ \textbf{case:} $u$ and $v$ can communicate \\
+	Suppose $i=j$, then $c_u = c_v$ and both nodes would continue to the next round, a contradiction.\\
+	In each case we can assume that $i<j$ without loss of generality and therefore "final $c_v$" $\neq$ "final $c_u$" since "final $c_v$" $\notin T_v \cup F_v$.
+\end{proof}
+
+\begin{theorem}
+\label{theorem:r2dzeit}
+	Let $G_1$ be the subgraph of G, that contains all nodes that are not dominated by another node. Formally, $G_1 := (V_1 := v \in V : D_v = \emptyset , E)$. Algorithm \ref{alg:r2d} will produce a valid coloring for $G_1$ in $O(\log n)$ rounds, with a probability over $1-1/n^c$ for an arbitrarily large constant $c$.
+\end{theorem}
+\begin{proof}
+	Similar as in (Elkin, Barenboim, 102), we argue that for a given node $v \in V_1$, the probability that it has chosen a color of one of its neighbors is at most $\Delta / 2\Delta$, the maximum number of neighbors divided by the size of the pool to choose its color from.
+	
+	Consequently, the probability that $v$ has not finished in round $i$ is $(1/2)^i$. By the union bound, the probability that such a $v$ exists for a given round $i$ is $n * (1/2)^i$. Hence, after $(c+1) \dot \log n$ rounds, with probability $\geq 1-n \dot (1/2)^i \geq 1-1/n^c$, all of these nodes terminate successfully.
+\end{proof}
+
+Let us now define a family of subgraphs, starting with $G_1$, which had been defined earlier. We define $G_{k+1}$ as the subgraph, that includes all nodes which are dominated only by nodes of $G_k$, formally: $G_{k+1} := (v \in V : D_v \subseteq V_k, E)$.
+
+\begin{theorem}
+\label{theorem:r2dlaenge}
+	$\exists N \in  \mathbb{N} : \forall k \geq N : G_k = G$
+\end{theorem}
+\begin{proof}
+	Let us choose $k$ so that $G_k = G_{k+1}$, it is sufficient to show that in that case $G_k = G$ already.
+	Assume for contradiction that $G_k \neq G$, that means there is a subset of nodes in $G$, which are not contained in $G_k$, that are dominated by each other.
+	This contradicts the definition of our graphs, namely that they cannot have strictly directed cycles.
+\end{proof}
+Further on, we define $l$ as the smallest such $N$. $l$ obviously is the length of the longest, strictly directed path in $G$.
+
+\begin{theorem}
+\label{theorem:r2diteration}
+	For a legally colored $G_k$, algorithm \ref{alg:r2d} needs, with probability $1-1/n^c$ for an arbitrarily large constant c, $O(\log n)$ further rounds to legally color $G_{k+1}$
+\end{theorem}
+\begin{proof}
+	If $G_k = G$ we're already done.
+	So we assume $G_k \neq G$.\\
+	We choose a node $v$ out of the set $V_{k+1}\backslash V_k$ arbitrarily. Similarly to the first iteration, we argue that the probability for $v$ to still conflict with other nodes, and so to not being finished in round $i$ is at most $(\Delta /(2\Delta))^i = (1/2)^i$. We turn that around and argue that the probability for such a $v$ to exist in round $i$ is at most $n (1/2)^i$, and again after $(c+1) \dot \log n$ rounds, with probability $\geq 1-n \dot (1/2)^i \geq 1-1/n^c$, all of these nodes terminate successfully.
+\end{proof}
+
+\begin{theorem}
+\label{theorem:r2dkomplett}
+	We conclude that the algorithm Rand-2Delta needs, with probability $1-1/n^c$ for an arbitrarily large constant c, $O(\Delta + l \dot \log n)$ rounds to terminate successfully.
+\end{theorem}
+\begin{proof}
+	The sub-procedure Get-$2$-Neighborhood requires $O(\Delta)$ rounds to complete, as shown earlier. Combining the three previous theorems, we need $O(\log n)$ rounds to compute $G_1$, then we need $l-1$ times $O(\log n)$ rounds to reach a valid coloring for $G_l = G$, at which point all nodes have terminated and are legally colored.
+\end{proof}
+
+\section{Testzeug}
+
+\begin{algorithm}[bt]
+\caption{\textsc{Stateless-Rand-Delta1}}\label{alg:algsrd1}
+\DontPrintSemicolon 
+
+\SetKwData{C}{C}
+
+\SetKwFor{ForAll}{forall}{do}
+
+\SetFuncSty{textsc}
+
+\SetKwFunction{randcolor}{random}
+\SetKwFunction{sendcolor}{send}
+\SetKwFunction{receiveColor}{receive}
+
+
+\C 
+$
+\leftarrow 
+\left\{ 
+1, \dots , \Delta + 1 
+\right\} 
+$ 
+\;
+
+
+$c 
+\leftarrow 
+$
+\C.\randcolor{} 
+\;
+
+
+
+
+\ForAll{timeslots}{ \sendcolor{$c$} \tcp{with a certain probability}
+\If{$ w = $ \receiveColor{} }{
+\C = \C$\backslash \{w\} $ \;
+\If{$ c == w $}{
+$ c =$ \C.\randcolor{} }
+}
+
+}
+
+
+
+\end{algorithm}
+
+\begin{table} [bt]
+\centering
+\caption{Some strange numbers.}
+\begin{tabular}{rr}
+\toprule
+First column & Second column \\
+\midrule
+3\,109\,218\,136 & 3\,208\,415\,108 \\
+2\,231\,385\,058 & 1\,959\,477\,358 \\
+1\,287\,719\,872 & 1\,317\,165\,206 \\
+2\,516\,844\,936 & 2\,630\,583\,944 \\
+1\,569\,466\,774 & 1\,636\,507\,220 \\
+1\,032\,627\,816 &    991\,322\,491 \\
+\bottomrule
+\end{tabular}
+\label{tbl:randomnumbers}
+\end{table}
+
+\begin{figure} [bt]
+  \centering
+  \input{figures/somegraph} % for .pdf files etc use \includegraphics{test.pdf}
+  \caption{A funny graph.}
+  \label{fig:somegraph}
+\end{figure}

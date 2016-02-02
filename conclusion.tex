@@ -1,0 +1,15 @@
+%% conclusion.tex
+%%
+
+%% ==================
+\chapter{Conclusion}
+\label{ch:conclusion}
+%% ==================
+
+In this paper we have shown that including unidirectional communication links in distributed algorithms is possible without much change to existing algorithms, yet they provide a new challenge for the algorithms themselves. For example, to get rid of a neighborhood search in the algorithms, we had to add $\Delta$ colors to the available color pool. In a way, we have shown that for randomized algorithm in directed graphs, the lack of a guarantee of neighbors respecting chosen colors leads to a bigger color pool. We present an algorithm which calculates a $\Delta+1$ coloring with an initialization in $O(\Delta+l\log n)$ and one algorithm which calculates a $2\Delta+1$ coloring without initialization in $O(l\log n)$.
+
+We also show that the runtime of randomized algorithms depend on the factor $l$, which is the longest chain of unidirectional communication links in the graph, and observe that this value does in praxis play a definite role and is dependant on the variation in transmission ranges of nodes, as we generated test data using geometric calculations which represent the nature of the SINR model with variable transmission power.
+
+We believe that distributed algorithms on directed graphs should be further evaluated as the fundamental problem of having no confirmation of message delivery is closely related to the physical SINR model with arbitrary transmission powers as well as generalizations of that using a signal decay model \cite{DBLP:journals/corr/BodlaenderH14}.
+
+Further work can be done to decrease the amount of colors in Algorithm~\ref{alg:r2d+1}, for example by looking into the proof of Johansson \cite{johansson1999simple} that Luby's algorithm also works without the coin toss to produce a $\Delta+1$ coloring in $O(\log n)$ rounds, and to remove the necessity of nodes knowing the global degree $\Delta$ and accomodating for asynchronous wake up times.
